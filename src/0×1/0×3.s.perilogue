@@ -1,0 +1,51 @@
+; A function perilogue consists of a function prologue and a function epilogue, 
+; which bracket the actual body of the function fore and aft. The prologue and 
+; epilogue are strongly coupled to one another, and are effectively, a single 
+; unit, the perilogue. Perilogues are, by their nature, specific to ISAs. The 
+; standard perilogues for an architecture set up a standard stack frame for the 
+; architecture in the prologue and tear it back down in the epilogue. 
+
+	pushl	%ebp
+	movl	%esp, %ebp
+	andl	$-16, %esp
+	subl	$N, %esp
+        ...
+	leave
+	ret
+
+; ------------------------------------------------------------------------------
+
+; The perilogue sets up and tears down a standard x86 stack frame. The base of 
+; the stack frame is pointed to by the esp register and comprises N bytes for 
+; function-local variables, followed by M+1 saved frame pointers, pointing to 
+; the stack frame/s of the calling function/s, followed by the caller to the 
+; function's return address and the (stack-stored) parameters to the function.
+; For a non-nested function, M = 0.
+
+	pushl	%ebp
+
+; The instruction above stores the stack frame of the calling function on the 
+; stack.
+
+	movl	%esp, %ebp
+
+; The instruction above takes the current stack pointer and uses it as the 
+; frame of the called function.
+
+	andl	$-16, %esp
+
+; A memory address, a, is said to be n-byte aligned, when a is a multiple of n 
+; bytes (where n is a power of 2). In this context, a byte is the smallest unit 
+; of memory access, i.e., each memory address specifies a different byte.
+; The aforementioned instruction aligns %esp to a 16-bit boundary.
+
+; Any positive number ^ -16 = some multiple of 16
+
+; andl	$-16, %esp  ⟹  esp ^= -16, where esp is a long word
+
+	subl $N, %esp
+
+; The instruction above leaves room for local variables.
+
+; Any references with a negative offset from %ebp are local variables. Any 
+; references with a positive offset from %ebp are parameters to the function.
